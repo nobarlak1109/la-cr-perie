@@ -1,0 +1,347 @@
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+
+#include <string>
+
+// ===============================
+// Machine Structure
+// ===============================
+struct Machine
+{
+    std::string name;
+    bool running;
+    int queue;
+    float progress;
+};
+
+int main(int argc, char* argv[])
+{
+    // ===============================
+    // Setup SDL
+    // ===============================
+
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_FLAGS,
+        0
+    );
+
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_PROFILE_MASK,
+        SDL_GL_CONTEXT_PROFILE_CORE
+    );
+
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_MAJOR_VERSION,
+        3
+    );
+
+    SDL_GL_SetAttribute(
+        SDL_GL_CONTEXT_MINOR_VERSION,
+        0
+    );
+
+    // ===============================
+    // Create Window
+    // ===============================
+
+    SDL_Window* window = SDL_CreateWindow(
+        "Factory Simulation",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        1280,
+        720,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+    );
+
+    SDL_GLContext gl_context =
+        SDL_GL_CreateContext(window);
+
+    SDL_GL_MakeCurrent(
+        window,
+        gl_context
+    );
+
+    // ===============================
+    // Setup ImGui
+    // ===============================
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplSDL2_InitForOpenGL(
+        window,
+        gl_context
+    );
+
+    ImGui_ImplOpenGL3_Init("#version 130");
+
+    // ===============================
+    // Create Machines
+    // ===============================
+
+    Machine machines[3] =
+    {
+        {"Machine A", false, 5, 0.0f},
+        {"Machine B", false, 0, 0.0f},
+        {"Machine C", false, 0, 0.0f}
+    };
+
+    // ===============================
+    // Simulation Variables
+    // ===============================
+
+    bool simulationRunning = false;
+    int completedProducts = 0;
+    int simulationSpeed = 5;
+    bool running = true;
+
+    // ===============================
+    // Main Loop
+    // ===============================
+
+    while (running)
+    {
+        // ===============================
+        // Handle Events
+        // ===============================
+
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event))
+        {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+
+            if (event.type == SDL_QUIT)
+            {
+                running = false;
+            }
+        }
+
+        // ===============================
+        // Start ImGui Frame
+        // ===============================
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
+        // ===============================
+        // Simulation Logic
+        // ===============================
+
+        if (simulationRunning)
+        {
+            float step = 0.001f * simulationSpeed;
+
+            // ===========================
+            // Machine A
+            // ===========================
+
+            if (machines[0].queue > 0)
+            {
+                machines[0].running = true;
+                machines[0].progress += step;
+
+                if (machines[0].progress >= 1.0f)
+                {
+                    machines[0].progress = 0.0f;
+                    machines[0].queue--;
+                    machines[1].queue++;
+                }
+            }
+            else
+            {
+                machines[0].running = false;
+            }
+
+            // ===========================
+            // Machine B
+            // ===========================
+
+            if (machines[1].queue > 0)
+            {
+                machines[1].running = true;
+                machines[1].progress += step;
+
+                if (machines[1].progress >= 1.0f)
+                {
+                    machines[1].progress = 0.0f;
+                    machines[1].queue--;
+                    machines[2].queue++;
+                }
+            }
+            else
+            {
+                machines[1].running = false;
+            }
+
+            // ===========================
+            // Machine C
+            // ===========================
+
+            if (machines[2].queue > 0)
+            {
+                machines[2].running = true;
+                machines[2].progress += step;
+
+                if (machines[2].progress >= 1.0f)
+                {
+                    machines[2].progress = 0.0f;
+                    machines[2].queue--;
+                    completedProducts++;
+                }
+            }
+            else
+            {
+                machines[2].running = false;
+            }
+        }
+
+        // ===============================
+        // UI
+        // ===============================
+
+        ImGui::Begin(
+            "Factory Simulation Dashboard"
+        );
+
+        ImGui::Text(
+            "Multi-Machine Production Line"
+        );
+
+        ImGui::Separator();
+
+        // ===============================
+        // Start / Stop Buttons
+        // ===============================
+
+        if (ImGui::Button(
+            "Start Simulation"
+        ))
+        {
+            simulationRunning = true;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button(
+            "Stop Simulation"
+        ))
+        {
+            simulationRunning = false;
+        }
+
+        ImGui::Separator();
+
+        // ===============================
+        // Simulation Speed
+        // ===============================
+
+        ImGui::SliderInt(
+            "Simulation Speed",
+            &simulationSpeed,
+            1,
+            10
+        );
+
+        ImGui::Separator();
+
+        // ===============================
+        // Machine Display
+        // ===============================
+
+        for (int i = 0; i < 3; i++)
+        {
+            ImGui::Text(
+                "%s",
+                machines[i].name.c_str()
+            );
+
+            if (machines[i].running)
+            {
+                ImGui::Text(
+                    "Status : RUNNING"
+                );
+            }
+            else
+            {
+                ImGui::Text(
+                    "Status : IDLE"
+                );
+            }
+
+            ImGui::Text(
+                "Queue : %d",
+                machines[i].queue
+            );
+
+            // ===========================
+            // Progress Bar
+            // ===========================
+
+            ImGui::ProgressBar(
+                machines[i].progress,
+                ImVec2(500, 30)
+            );
+
+            ImGui::Separator();
+        }
+
+        // ===============================
+        // Completed Products
+        // ===============================
+
+        ImGui::Text(
+            "Completed Products : %d",
+            completedProducts
+        );
+
+        ImGui::End();
+
+        // ===============================
+        // Render
+        // ===============================
+
+        ImGui::Render();
+
+        glViewport(
+            0,
+            0,
+            1280,
+            720
+        );
+
+        glClearColor(
+            0.1f,
+            0.1f,
+            0.1f,
+            1.0f
+        );
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        ImGui_ImplOpenGL3_RenderDrawData(
+            ImGui::GetDrawData()
+        );
+
+        SDL_GL_SwapWindow(window);
+    }
+
+    // ===============================
+    // Cleanup
+    // ===============================
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+    SDL_GL_DeleteContext(gl_context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}

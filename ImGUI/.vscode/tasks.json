@@ -1,0 +1,47 @@
+{
+"version": "2.0.0",
+"tasks": [
+{
+"label": "Build ImGui Project",
+"type": "shell",
+"command": "C:/msys64/ucrt64/bin/g++.exe",
+"args": [
+    "-std=c++17",
+    "-IView",
+    "-IView/UI",
+    "-IModel",
+    "-IController",
+    "-Ilibs/imgui",
+    "-Ilibs/imgui/backends",
+    "-IC:/msys64/ucrt64/include/SDL2",
+    "src/main.cpp",
+    "View/View.cpp",
+    "View/Platform.cpp",
+    "View/UI/MainDashboard.cpp",
+    "View/UI/ControlPanelViewer.cpp",
+    "View/UI/MachineStatusViewer.cpp",
+    "View/UI/InventoryViewer.cpp",
+    "View/UI/FactoryFloorViewer.cpp",
+    "libs/imgui/imgui.cpp",
+    "libs/imgui/imgui_draw.cpp",
+    "libs/imgui/imgui_tables.cpp",
+    "libs/imgui/imgui_widgets.cpp",
+    "libs/imgui/backends/imgui_impl_sdl2.cpp",
+    "libs/imgui/backends/imgui_impl_opengl3.cpp",
+    "-LC:/msys64/ucrt64/lib",
+    "-lmingw32",
+    "-lSDL2main",
+    "-lSDL2",
+    "-lopengl32",
+    "-mwindows",
+    "-o",
+    "build/app.exe"
+],
+"group": {
+"kind": "build",
+"isDefault": true
+},
+"problemMatcher": ["$gcc"]
+}
+]
+}

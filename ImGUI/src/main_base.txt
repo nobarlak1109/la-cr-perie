@@ -1,0 +1,199 @@
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
+#include <SDL.h>
+#include <SDL_opengl.h>
+int main(int argc, char* argv[])
+{
+// Setup SDL
+SDL_Init(SDL_INIT_VIDEO);
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+// Create window
+SDL_Window* window = SDL_CreateWindow(
+"My ImGui App",
+SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+800, 600,
+SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+);
+SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+SDL_GL_MakeCurrent(window, gl_context);
+// Setup ImGui
+IMGUI_CHECKVERSION();
+ImGui::CreateContext();
+ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+ImGui_ImplOpenGL3_Init("#version 130");
+bool running = true;
+int fnumber=0;
+int snumber=0;
+char op='+';
+char eq='=';
+int result=0;
+
+
+while (running)
+{
+// Handle events
+SDL_Event event;
+while (SDL_PollEvent(&event))
+{
+ImGui_ImplSDL2_ProcessEvent(&event);
+if (event.type == SDL_QUIT) running = false;
+}
+// Start ImGui frame
+ImGui_ImplOpenGL3_NewFrame();
+ImGui_ImplSDL2_NewFrame();
+ImGui::NewFrame();
+// Your UI goes here
+ImGui::Begin("Calculator UI");
+
+ImGui::Text("Select First Number ");
+if (ImGui::Button("1##first")){
+    fnumber=1;
+}
+ImGui::SameLine();
+if (ImGui::Button("2##first")){
+    fnumber=2;
+}
+ImGui::SameLine();
+if (ImGui::Button("3##first")){
+    fnumber=3;
+}
+ImGui::SameLine();
+if (ImGui::Button("4##first")){
+    fnumber=4;
+}
+ImGui::SameLine();
+if (ImGui::Button("5##first")){
+    fnumber=5;
+}
+
+ImGui::Text("Select Second Number ");
+if (ImGui::Button("1##second")){
+    snumber=1;
+}
+ImGui::SameLine();
+if (ImGui::Button("2##second")){
+    snumber=2;
+}
+ImGui::SameLine();
+if (ImGui::Button("3##second")){
+    snumber=3;
+}
+ImGui::SameLine();
+if (ImGui::Button("4##second")){
+    snumber=4;
+}
+ImGui::SameLine();
+if (ImGui::Button("5##second")){
+    snumber=5;
+}
+
+ImGui::Text("Select Operator ");
+if (ImGui::Button("+")){
+    op='+';
+}
+ImGui::SameLine();
+if (ImGui::Button("-")){
+    op='-';
+}
+ImGui::SameLine();
+if (ImGui::Button("*")){
+    op='*';
+}
+ImGui::SameLine();
+if (ImGui::Button("/")){
+    op='/';
+}
+
+
+
+if (ImGui::Button("=")){
+    eq='=';
+    switch (op)
+{
+    case '+':
+        result = fnumber + snumber;
+        break;
+
+    case '-':
+        result = fnumber - snumber;
+        break;
+
+    case '*':
+        result = fnumber * snumber;
+        break;
+
+    case '/':
+        result = fnumber / snumber;
+        break;
+}
+}
+ImGui::SameLine();
+if (ImGui::Button("C")){
+    eq='C';
+    fnumber=0;
+    snumber=0;
+    op='+';
+}
+
+
+
+ImGui::Text("First Number : %d",fnumber);
+ImGui::Text("Second Number : %d",snumber);
+ImGui::Text("Operator : %c",op);
+ImGui::Text("Result : %d",result);
+
+
+
+ImGui::End();
+// Render
+ImGui::Render();
+glViewport(0, 0, 800, 600);
+glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+glClear(GL_COLOR_BUFFER_BIT);
+ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+SDL_GL_SwapWindow(window);
+}
+// Cleanup
+ImGui_ImplOpenGL3_Shutdown();
+ImGui_ImplSDL2_Shutdown();
+ImGui::DestroyContext();
+SDL_GL_DeleteContext(gl_context);
+SDL_DestroyWindow(window);
+SDL_Quit();
+return 0;
+}
+
+
+
+/*
+ 
+ImGui::Text("GIST C++");  
+ImGui::Text("ImGui Practice");  
+ImGui::Text("2026");
+if (ImGui::Button("Click Me"))  {  
+    buttonPressed = true;  
+}
+if (buttonPressed)  
+{  ImGui::Text("Button Pressed!");  }
+ImGui::Checkbox("Debug Mode", &debugMode);  // Display text when the checkbox is checked  
+if (debugMode){  
+    ImGui::Text("Debug Mode Enabled");  
+}
+ImGui::SliderFloat("Red Value", &redValue, 0.0f, 1.0f);  // Display the current red color value  /
+ImGui::Text("Red Value : %.2f", redValue);
+ImGui::InputText("Input", name, 100);  // Display the entered text  
+ImGui::Text("Hello %s", name);
+
+ImGui::Text("Count : %d", count);  // Increase the count value when the button is clicked  
+if (ImGui::Button("Increase"))  {  count++;  }
+
+ImGui::Checkbox("Dark Mode", &darkMode);
+
+ImGui::InputText("Name", name, 100);  // Add a slider for age  
+ImGui::SliderFloat("Age", &age, 0.0f, 100.0f);  // Add a save button  
+ImGui::Button("Save");
+*/
