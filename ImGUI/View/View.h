@@ -1,10 +1,11 @@
 #pragma once
 #include "../Controller/FactoryController.h"
+#include "../Model/Base.h"
 #include "../Model/FactoryModel.h"
 #include "Platform.h"
 #include "UI/MainDashboard.h"
 
-class View
+class View : public Base
 {
 public:
     View();

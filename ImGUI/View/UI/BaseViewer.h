@@ -1,8 +1,9 @@
 #pragma once
 
+#include "../../Model/Base.h"
 #include "imgui.h"
 
-class BaseViewer
+class BaseViewer : public Base
 {
 public:
     virtual ~BaseViewer() = default;

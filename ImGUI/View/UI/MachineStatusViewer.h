@@ -3,6 +3,7 @@
 #include "BaseViewer.h"
 #include "../../Model/FactoryModel.h"
 
+#include <string>
 #include <vector>
 
 enum class MachineState
@@ -13,9 +14,9 @@ enum class MachineState
     Broken
 };
 
-struct MachineViewData
+struct MachineViewData : public Base
 {
-    const char* machineName = "Machine";
+    std::string machineName = "Machine";
     int itemsInQueue = 0;
     int itemsProcessed = 0;
     float progress = 0.0f;

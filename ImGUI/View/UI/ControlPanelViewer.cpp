@@ -4,6 +4,9 @@ void ControlPanelViewer::Draw(ImVec2 pos, ImVec2 size)
 {
     lastActions = {};
 
+    if(controller)
+        flowModeIndex = static_cast<int>(controller->getFlowMode());
+
     ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(size, ImGuiCond_Always);
     ImGui::Begin("Control Panel", nullptr,
@@ -17,7 +20,29 @@ void ControlPanelViewer::Draw(ImVec2 pos, ImVec2 size)
     DrawStartStopButtons();
     DrawScenarioButtons();
 
-    ImGui::SliderInt("Speed", &speed, 1, 10);
+    const char* modes[] =
+    {
+        "Normal",
+        "Bottleneck",
+        "Random Breakdown",
+        "Overflow",
+        "Short Supply"
+    };
+
+    int selectedMode = flowModeIndex;
+    if(ImGui::Combo("Flow Mode", &selectedMode, modes, IM_ARRAYSIZE(modes)))
+    {
+        flowModeIndex = selectedMode;
+        if(controller)
+            controller->setFlowMode(static_cast<FactoryModel::FlowMode>(selectedMode));
+    }
+
+    if(ImGui::SliderInt("Speed", &speed, 1, 10) && controller)
+        controller->setSpeed(speed);
+
+    if(ImGui::Button("Restock Now") && controller)
+        controller->restockNow();
+
     lastActions.requestedSpeed = speed;
 
     ImGui::End();
@@ -45,6 +70,10 @@ void ControlPanelViewer::DrawScenarioButtons()
     {
         lastActions.resetPressed = true;
         speed = 1;
-        if(controller) controller->resetSimulation();
+        if(controller)
+        {
+            controller->resetSimulation();
+            controller->setSpeed(speed);
+        }
     }
 }

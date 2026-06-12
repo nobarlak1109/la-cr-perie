@@ -3,7 +3,7 @@
 #include "BaseViewer.h"
 #include "../../Model/FactoryModel.h"
 
-struct InventoryViewData
+struct InventoryViewData : public Base
 {
     int eggs = 0;
     int flour = 0;
@@ -12,7 +12,7 @@ struct InventoryViewData
     int uncookedDough = 0;
     int cookedDough = 0;
     int crepes = 0;
-    int lost = 0;
+    int lostItems = 0;
 };
 
 class InventoryViewer : public BaseViewer

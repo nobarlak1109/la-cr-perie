@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Base.h"
 #include "Machine.h"
 
-class Inspector
+class Inspector : public Base
 {
 public:
     void process(Machine& machine) {}

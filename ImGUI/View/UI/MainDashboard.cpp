@@ -1,6 +1,6 @@
 #include "MainDashboard.h"
 
-#include <iostream>
+#include <string>
 
 MainDashboard::MainDashboard(FactoryModel* factoryModel, FactoryController* factoryController)
 {
@@ -35,34 +35,179 @@ void MainDashboard::DrawAll()
 
     float leftColW = 300.0f;
     float rightColW = 250.0f;
-    float ctrlH = 120.0f;
+    float ctrlH = 170.0f;
 
     controlPanelViewer.Draw({0, 0}, {leftColW, ctrlH});
-    ControlActions actions = controlPanelViewer.GetActions();
-    if(actions.startPressed) std::cout << "START\n";
-    if(actions.stopPressed) std::cout << "STOP\n";
-    if(actions.resetPressed) std::cout << "RESET\n";
 
-    std::vector<MachineViewData> machines =
+    std::vector<MachineViewData> machines;
+    InventoryViewData inventory;
+
+    if(factoryController)
     {
-        {"Scale", 5, 42, 0.6f, MachineState::Idle},
-        {"Mixer", 3, 10, 0.8f, MachineState::Idle},
-        {"Cooker", 2, 8, 0.5f, MachineState::Idle}
-    };
+        const auto& modelMachines = factoryController->getMachines();
+        machines.reserve(modelMachines.size());
+
+        for(const auto& machinePtr : modelMachines)
+        {
+            if(!machinePtr)
+                continue;
+
+            MachineViewData view;
+            std::string name = machinePtr->getName();
+            view.machineName = name.empty() ? std::string("Machine") : std::move(name);
+            view.itemsInQueue = machinePtr->getQueueCount();
+            view.itemsProcessed = machinePtr->getItemsProcessed();
+            view.progress = machinePtr->getProgress();
+
+            if(machinePtr->isBroken())
+                view.state = MachineState::Broken;
+            else if(machinePtr->isRunning())
+                view.state = MachineState::Running;
+            else
+                view.state = MachineState::Idle;
+
+            machines.push_back(std::move(view));
+        }
+
+        const auto& ingredients = factoryController->getInventory().getIngredients();
+        for(const auto& ingredient : ingredients)
+        {
+            if(!ingredient)
+                continue;
+
+            std::string type = ingredient->getType();
+            if(type == "Egg")
+                inventory.eggs++;
+            else if(type == "Flour")
+                inventory.flour++;
+            else if(type == "Milk")
+                inventory.milk++;
+            else if(type == "Topping")
+                inventory.toppings++;
+            else if(type == "UncookedDough")
+                inventory.uncookedDough++;
+            else if(type == "CookedDough")
+                inventory.cookedDough++;
+        }
+
+        const auto& products = factoryController->getInventory().getProducts();
+        for(const auto& product : products)
+        {
+            if(product && product->getProductName() == "Crepe")
+                inventory.crepes++;
+        }
+
+        inventory.lostItems = factoryController->getLostItems();
+    }
+
     machineStatusViewer.SetMachines(machines);
     machineStatusViewer.Draw({0, ctrlH}, {leftColW, height - ctrlH});
 
-    InventoryViewData inventory;
-    inventory.eggs = 0;
-    inventory.flour = 0;
-    inventory.milk = 0;
-    inventory.toppings = 0;
-    inventory.uncookedDough = 0;
-    inventory.cookedDough = 0;
-    inventory.crepes = 0;
-    inventory.lost = 0;
+    float inspectorH = 190.0f;
     inventoryViewer.SetInventory(inventory);
-    inventoryViewer.Draw({width - rightColW, 0}, {rightColW, height});
+    inventoryViewer.Draw({width - rightColW, 0}, {rightColW, height - inspectorH});
 
-    factoryFloorViewer.Draw({leftColW, 0}, {width - leftColW - rightColW, height});
+    float factoryTop = height * 0.14f;
+    float factoryHeight = height * 0.52f;
+    float factoryLogTop = factoryTop + factoryHeight + 8.0f;
+    float factoryLogHeight = height - factoryLogTop;
+    float centerW = width - leftColW - rightColW;
+
+    factoryFloorViewer.Draw({leftColW, factoryTop}, {width - leftColW - rightColW, factoryHeight});
+    DrawFactoryLog({leftColW, factoryLogTop}, {centerW, factoryLogHeight});
+
+    DrawMachineInspector({width - rightColW, height - inspectorH}, {rightColW, inspectorH});
+}
+
+void MainDashboard::DrawMachineInspector(ImVec2 pos, ImVec2 size)
+{
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+    ImGui::Begin("Machine Inspector", nullptr,
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse);
+
+    int selectedIndex = factoryFloorViewer.GetSelectedMachineIndex();
+    Machine* selectedMachine = nullptr;
+
+    if(factoryModel && selectedIndex >= 0)
+    {
+        const auto& machines = factoryModel->getMachines();
+        if(selectedIndex < static_cast<int>(machines.size()) && machines[selectedIndex])
+            selectedMachine = machines[selectedIndex].get();
+    }
+
+    if(!selectedMachine)
+    {
+        ImGui::TextWrapped("Click a machine in the factory panel.");
+        ImGui::End();
+        return;
+    }
+
+    std::string name = selectedMachine->getName();
+    if(name.empty())
+        name = "Machine";
+
+    ImGui::Text("Selected: %s", name.c_str());
+    ImGui::Separator();
+    ImGui::Text("State: %s", selectedMachine->getStatus().c_str());
+    ImGui::Text("Queue: %d / %d", selectedMachine->getQueueCount(), selectedMachine->getMaxQueueSize());
+    ImGui::Text("Processed: %d", selectedMachine->getItemsProcessed());
+    ImGui::ProgressBar(selectedMachine->getProgress(), ImVec2(-1.0f, 0.0f));
+
+    if(ImGui::Button(selectedMachine->isBroken() ? "Clear Forced Breakdown" : "Force Breakdown"))
+    {
+        bool broken = !selectedMachine->isBroken();
+        selectedMachine->setBroken(broken);
+
+        if(factoryModel)
+            factoryModel->addLog(name + (broken ? " broken!" : " fixed!"));
+    }
+
+    if(ImGui::Button("Instant Repair"))
+    {
+        bool wasBroken = selectedMachine->isBroken();
+        selectedMachine->repair();
+
+        if(wasBroken && factoryModel)
+            factoryModel->addLog(name + " fixed!");
+    }
+
+    ImGui::End();
+}
+
+void MainDashboard::DrawFactoryLog(ImVec2 pos, ImVec2 size)
+{
+    ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(size, ImGuiCond_Always);
+    ImGui::Begin("Factory Log", nullptr,
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoCollapse);
+
+    if(!factoryModel)
+    {
+        ImGui::TextWrapped("No factory model connected.");
+        ImGui::End();
+        return;
+    }
+
+    const auto& logs = factoryModel->getLogs();
+    if(logs.empty())
+    {
+        ImGui::TextWrapped("No production events yet.");
+        ImGui::End();
+        return;
+    }
+
+    ImGui::BeginChild("FactoryLogScroll", ImVec2(0, 0), false);
+    for(const std::string& log : logs)
+        ImGui::TextWrapped("%s", log.c_str());
+
+    if(ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+        ImGui::SetScrollHereY(1.0f);
+
+    ImGui::EndChild();
+    ImGui::End();
 }

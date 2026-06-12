@@ -26,19 +26,14 @@ public:
         if (repairTimer <= 0.0f)
         {
             if (assignedMachine)
-            {
                 assignedMachine->repair();
-            }
 
             assignedMachine = nullptr;
             busy = false;
         }
     }
 
-    bool isBusy() const
-    {
-        return busy;
-    }
+    bool isBusy() const { return busy; }
 
 private:
     bool busy = false;

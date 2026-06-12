@@ -15,6 +15,9 @@ public:
     void DrawMachines();
     void DrawConveyors();
 
+    int GetSelectedMachineIndex() const { return selectedMachineIndex; }
+
 private:
     FactoryModel* factoryModel = nullptr;
+    int selectedMachineIndex = -1;
 };

@@ -22,6 +22,9 @@ public:
     void DrawAll();
 
 private:
+    void DrawMachineInspector(ImVec2 pos, ImVec2 size);
+    void DrawFactoryLog(ImVec2 pos, ImVec2 size);
+
     FactoryModel* factoryModel = nullptr;
     FactoryController* factoryController = nullptr;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Base.h"
 #include "Ingredient.h"
 #include "Product.h"
 
@@ -8,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-class Inventory
+class Inventory : public Base
 {
 public:
     Inventory() = default;
@@ -24,7 +25,24 @@ public:
         this->ingredients = std::move(ingredients);
     }
 
-    void removeIngredient(const std::string& type, float amount) {}
+    void removeIngredient(const std::string& type, float amount)
+    {
+        float remaining = amount;
+
+        for (auto it = ingredients.begin(); it != ingredients.end() && remaining > 0.0f;)
+        {
+            if (*it && (*it)->getType() == type)
+            {
+                remaining -= 1.0f;
+                it = ingredients.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
     void addProduct(std::unique_ptr<Product> product) { products.push_back(std::move(product)); }
     const std::vector<std::unique_ptr<Product>>& getProducts() const { return products; }
     void setProducts(std::vector<std::unique_ptr<Product>> products)
@@ -32,8 +50,27 @@ public:
         this->products = std::move(products);
     }
 
-    float getIngredientCount(const std::string& type) const { return 0.0f; }
-    int getProductCount(const std::string& type) const { return 0; }
+    float getIngredientCount(const std::string& type) const
+    {
+        float count = 0.0f;
+        for (const auto& ingredient : ingredients)
+        {
+            if (ingredient && ingredient->getType() == type)
+                count += 1.0f;
+        }
+        return count;
+    }
+
+    int getProductCount(const std::string& type) const
+    {
+        int count = 0;
+        for (const auto& product : products)
+        {
+            if (product && product->getProductName() == type)
+                ++count;
+        }
+        return count;
+    }
 
 private:
     std::vector<std::unique_ptr<Ingredient>> ingredients;

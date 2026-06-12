@@ -25,7 +25,7 @@ void MachineStatusViewer::DrawMachineStatus()
 
 void MachineStatusViewer::DrawMachine(const MachineViewData& machine)
 {
-    ImGui::Text("-- %s --", machine.machineName);
+    ImGui::Text("-- %s --", machine.machineName.c_str());
     DrawState(machine.state);
     ImGui::ProgressBar(machine.progress, ImVec2(-1, 0));
     ImGui::Text("Items in Queue:   %d", machine.itemsInQueue);

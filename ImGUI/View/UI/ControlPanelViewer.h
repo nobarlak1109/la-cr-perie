@@ -3,7 +3,7 @@
 #include "BaseViewer.h"
 #include "../../Controller/FactoryController.h"
 
-struct ControlActions
+struct ControlActions : public Base
 {
     bool startPressed = false;
     bool stopPressed = false;
@@ -28,5 +28,6 @@ private:
 
     FactoryController* controller = nullptr;
     int speed = 1;
+    int flowModeIndex = 0;
     ControlActions lastActions;
 };

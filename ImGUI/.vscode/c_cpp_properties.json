@@ -3,8 +3,8 @@
 {
 "name": "Win32",
 "includePath": [
-"${workspaceFolder}/libs/imgui",
-"${workspaceFolder}/libs/imgui/backends",
+"${workspaceFolder}/../libs/imgui",
+"${workspaceFolder}/../libs/imgui/backends",
 "${workspaceFolder}/View",
 "${workspaceFolder}/View/UI",
 "${workspaceFolder}/Model",

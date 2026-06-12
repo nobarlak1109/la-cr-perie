@@ -31,6 +31,6 @@ void InventoryViewer::DrawProducts()
     ImGui::Text("Uncooked Dough: %d", data.uncookedDough);
     ImGui::Text("Cooked Dough:   %d", data.cookedDough);
     ImGui::Text("Crepes:         %d", data.crepes);
-    ImGui::Text("Lost:           %d", data.lost);
+    ImGui::Text("Overflow Loss:  %d", data.lostItems);
 }
 
